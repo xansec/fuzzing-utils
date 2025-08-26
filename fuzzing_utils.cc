@@ -52,6 +52,7 @@ void RunFuzzTests(const char* file_path) {
         for (auto& fuzz_test : fuzz_tests) {
             fuzz_test();
         }
+        free(file.contents);
     }
 
     global_provider = nullptr;  // Reset provider; this whole function should only run once anyways
