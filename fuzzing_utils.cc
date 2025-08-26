@@ -38,6 +38,7 @@ void RunFuzzTests(const char* file_path) {
         }
         if (file.len < 2) {
             std::cerr << "File is too small." << std::endl;
+            free(file.contents);
             return;
         }
 
