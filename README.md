@@ -1,6 +1,6 @@
 # Fuzzing Utils
 
-Header only files for creating `FUZZ_TEST()` macros to use along-side Google Test-style `TEST()` macros.
+Library for creating `FUZZ_TEST()` macros to use along-side Google Test-style `TEST()` macros.
 
 ## Usage
 
