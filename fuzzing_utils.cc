@@ -5,10 +5,14 @@
 
 // Global variables
 fuzzed_data_provider* global_provider = nullptr;
-std::vector<FuzzTestFunc> fuzz_tests;
+
+static std::vector<FuzzTestFunc> &fuzz_tests() {
+    static std::vector<FuzzTestFunc> _instance;
+    return _instance;
+}
 
 void RegisterFuzzTest(FuzzTestFunc func) {
-    fuzz_tests.push_back(func);
+    fuzz_tests().push_back(func);
 }
 
 void RunFuzzTests(const char* file_path) {
@@ -46,7 +50,7 @@ void RunFuzzTests(const char* file_path) {
         global_provider = &provider;  // Make the provider available to all tests without reinitializing it on every pass
 
         // Run all registered fuzz tests using the same provider
-        for (auto& fuzz_test : fuzz_tests) {
+        for (auto& fuzz_test : fuzz_tests()) {
             fuzz_test();
         }
         free(file.contents);
