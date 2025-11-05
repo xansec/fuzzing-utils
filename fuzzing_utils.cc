@@ -34,8 +34,13 @@ void RunFuzzTests(const char* file_path) {
     }
 
     for (const auto &testcase : files) {
-        const char* testcase_ptr = testcase.string().c_str();
+        // const char* testcase_ptr = testcase.string().c_str();
         EntireFile file = read_entire_file_into_memory(testcase.string().c_str());
+        if (file.len < 2) {
+            std::cerr << "File is too small." << std::endl;
+            free(file.contents);
+            return;
+        }
 
         const unsigned char* data = reinterpret_cast<const unsigned char*>(file.contents);
         size_t len = file.len;
@@ -46,7 +51,7 @@ void RunFuzzTests(const char* file_path) {
 
         // Run single fuzz test based on data index
         if (len > 0) {
-            fuzz_tests().at((data[0] % len));
+            fuzz_tests()[(data[0] % fuzz_tests().size())]();
         }
         free(file.contents);
     }

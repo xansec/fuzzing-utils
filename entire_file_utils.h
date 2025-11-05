@@ -27,32 +27,41 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         fprintf(stderr, "No path was given to read\n");
         exit(1);
     }
-
-    int fd = open(path, O_RDONLY);
-    if (fd == -1) {
+	
+    FILE* file = fopen(path, "r");
+    if (!file) {
         fprintf(stderr, "Could not open %s for reading\n", path);
         exit(1);
     }
 
-    while (1) {
-        char buf[BUFSIZ];
-        ssize_t n = read(fd, buf, sizeof(buf));
-        if (n == -1) {
-            perror("read");
-            exit(1);
-        }
-        if (n == 0) {
-            break;
-        }
-        res.len += n;
-        res.contents = (char *)realloc(res.contents, res.len);
-        if (res.contents == NULL) {
-            perror("malloc");
-            exit(1);
-        }
-        memcpy(res.contents + res.len - n, buf, n);
-    }
-    close(fd);
+    fseek(file, 0, SEEK_END);
+    int file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char* data = (char*)malloc(file_size);
+    fread(data, sizeof(char), file_size, file);
+
+    fclose(file);
+
+    // while (1) {
+    //     char buf[BUFSIZ];
+    //     ssize_t n = read(fd, buf, sizeof(buf));
+    //     if (n == -1) {
+    //         perror("read");
+    //         exit(1);
+    //     }
+    //     if (n == 0) {
+    //         break;
+    //     }
+    //     res.len += n;
+    //     res.contents = (char *)realloc(res.contents, res.len);
+    //     if (res.contents == NULL) {
+    //         perror("malloc");
+    //         exit(1);
+    //     }
+    //     memcpy(res.contents + res.len - n, buf, n);
+    // }
+    // close(fd);
     return res;
 }
 
