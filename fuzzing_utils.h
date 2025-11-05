@@ -4,14 +4,7 @@
 #include "entire_file_utils.h"
 #include "fuzzed_data_provider.h"
 
-extern fuzzed_data_provider* global_provider;
-
-#define INIT_FUZZ_TEST \
-    fuzzed_data_provider& provider = *global_provider; \
-    if (!global_provider) { \
-        fprintf(stderr, "Error: fuzzed_data_provider not initialized!\n"); \
-        return; \
-    }
+extern fuzzed_data_provider* provider;
 
 // Bunch of variable replacement
 #define FUZZ_TEST(test_group, test_name) \

@@ -14,7 +14,6 @@ Then, define your fuzz test cases using the `FUZZ_TEST()` macro:
 
 ```cpp
 FUZZ_TEST(MyTest, FuzzMyTestFunction) {
-    INIT_FUZZ_TEST;
     // initialize variables with FuzzedDataProvider "provider"
     // call your test function with fuzzed data
 }
@@ -32,7 +31,6 @@ This allows you to create a FUZZ_TEST fixture that looks like:
 
 ```cpp
 FUZZ_TEST(FooTest, FuzzTestFoo) {
-    INIT_FUZZ_TEST;
     std::string str = provider.ConsumeRandomLengthString();
     int num = provider.ConsumeIntegral<int>();
     test_foo(str, num);

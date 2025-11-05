@@ -4,7 +4,7 @@
 #include "fuzzing_utils.h"
 
 // Global variables
-fuzzed_data_provider* global_provider = nullptr;
+fuzzed_data_provider* provider = nullptr;
 
 static std::vector<FuzzTestFunc> &fuzz_tests() {
     static std::vector<FuzzTestFunc> _instance;
@@ -25,9 +25,9 @@ void RunFuzzTests(const char* file_path) {
     std::vector<std::filesystem::path> files;
     if (std::filesystem::is_directory(input_path)) {
         for (const auto &entry : std::filesystem::directory_iterator(input_path)) {
-        if (entry.is_regular_file()) {
-            files.push_back(entry.path());
-        }
+            if (entry.is_regular_file()) {
+                files.push_back(entry.path());
+            }
         }
     } else if (std::filesystem::is_regular_file(input_path)) {
         files.push_back(input_path);
@@ -36,25 +36,20 @@ void RunFuzzTests(const char* file_path) {
     for (const auto &testcase : files) {
         const char* testcase_ptr = testcase.string().c_str();
         EntireFile file = read_entire_file_into_memory(testcase.string().c_str());
-        if (file.len < 2) {
-            std::cerr << "File is too small." << std::endl;
-            free(file.contents);
-            return;
-        }
 
         const unsigned char* data = reinterpret_cast<const unsigned char*>(file.contents);
         size_t len = file.len;
 
-        // Create and set up FDP instance
-        fuzzed_data_provider provider(data, len);
-        global_provider = &provider;  // Make the provider available to all tests without reinitializing it on every pass
+        // Init provider
+        fuzzed_data_provider fdp(data, len);
+        provider = &fdp;
 
-        // Run all registered fuzz tests using the same provider
-        for (auto& fuzz_test : fuzz_tests()) {
-            fuzz_test();
+        // Run single fuzz test based on data index
+        if (len > 0) {
+            fuzz_tests().at((data[0] % len));
         }
         free(file.contents);
     }
 
-    global_provider = nullptr;  // Reset provider; this whole function should only run once anyways
+    provider = nullptr;  // Reset provider; this whole function should only run once anyways
 }
