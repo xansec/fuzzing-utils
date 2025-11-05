@@ -10,26 +10,26 @@
 #include <errno.h>
 
 /* Provide global provider pointer */
-simple_fdp* global_provider = NULL;
+simple_fdp* provider = NULL;
 
 /* Simple dynamic array for registered tests */
-static FuzzTestFunc* tests = NULL;
-static size_t tests_count = 0;
-static size_t tests_capacity = 0;
+static FuzzTestFunc* harnesses = NULL;
+static size_t harness_count = 0;
+static size_t harness_capacity = 0;
 
 void RegisterFuzzTest(FuzzTestFunc func) {
     if (!func) return;
-    if (tests_count == tests_capacity) {
-        size_t new_cap = tests_capacity ? tests_capacity * 2 : 8;
-        FuzzTestFunc* new_arr = (FuzzTestFunc*)realloc(tests, new_cap * sizeof(FuzzTestFunc));
+    if (harness_count == harness_capacity) {
+        size_t new_cap = harness_capacity ? harness_capacity * 2 : 8;
+        FuzzTestFunc* new_arr = (FuzzTestFunc*)realloc(harnesses, new_cap * sizeof(FuzzTestFunc));
         if (!new_arr) {
             fprintf(stderr, "RegisterFuzzTest: out of memory\n");
             return;
         }
-        tests = new_arr;
-        tests_capacity = new_cap;
+        harnesses = new_arr;
+        harness_capacity = new_cap;
     }
-    tests[tests_count++] = func;
+    harnesses[harness_count++] = func;
 }
 
 static int is_dir(const char* p) {
@@ -108,16 +108,16 @@ void RunFuzzTests(const char* file_path) {
             free(ef.contents);
             continue;
         }
-        global_provider = p;
+        provider = p;
 
         /* run all tests */
-        for (size_t t=0; t<tests_count; ++t) {
-            if (tests[t]) tests[t]();
+        if (ef.len > 0) {
+            harnesses[ef.contents[0] % harness_count];
         }
 
         /* cleanup */
         simple_fdp_destroy(p);
-        global_provider = NULL;
+        provider = NULL;
         free(ef.contents);
     }
 
