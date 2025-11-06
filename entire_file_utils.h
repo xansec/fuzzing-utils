@@ -27,6 +27,12 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         fprintf(stderr, "No path was given to read\n");
         exit(1);
     }
+	
+    FILE* file = fopen(path, "rb");
+    if (!file) {
+        fprintf(stderr, "Could not open %s for reading\n", path);
+        exit(1);
+    }
 
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
@@ -38,19 +44,27 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         char buf[BUFSIZ];
         ssize_t n = read(fd, buf, sizeof(buf));
         if (n == -1) {
-            perror("read");
+            perror("Unable to read fd");
             exit(1);
         }
         if (n == 0) {
             break;
         }
-        res.len += n;
-        res.contents = (char *)realloc(res.contents, res.len);
-        if (res.contents == NULL) {
-            perror("malloc");
+        size_t add = (size_t)n;
+        size_t new_len = res.len + add;
+
+        
+        char* tmp = (char*)realloc(res.contents, new_len);
+        if (tmp == NULL) {
+            free(res.contents);
+            perror("Unable to realloc");
+            close(fd);
             exit(1);
         }
-        memcpy(res.contents + res.len - n, buf, n);
+        res.contents = tmp;
+
+        memcpy(res.contents + res.len, buf, add);
+        res.len = new_len;
     }
     close(fd);
     return res;
