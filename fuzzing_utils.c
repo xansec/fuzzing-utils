@@ -112,7 +112,7 @@ void RunFuzzTests(const char* file_path) {
 
         /* run all tests */
         if (ef.len > 0) {
-            harnesses[ef.contents[0] % harness_count];
+            harnesses[ef.contents[0] % harness_count]();
         }
 
         /* cleanup */
