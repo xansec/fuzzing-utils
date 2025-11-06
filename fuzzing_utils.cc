@@ -58,7 +58,7 @@ void RunFuzzTests(const char* file_path) {
 
         // Run single fuzz test based on data index
         if (!fuzz_tests().empty()) {
-            size_t index = static_cast<size_t>(data[0]) % fuzz_tests().size();
+            size_t index = static_cast<size_t>(fdp.ConsumeIntegral<uint64_t>() % fuzz_tests().size());
             fuzz_tests()[index](&fdp);
         }
         free(file.contents);
