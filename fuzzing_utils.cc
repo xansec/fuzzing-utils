@@ -3,9 +3,6 @@
 #include <filesystem>
 #include "fuzzing_utils.h"
 
-// Global variables
-fuzzed_data_provider* provider = nullptr;
-
 static std::vector<FuzzTestFunc> &fuzz_tests() {
     static std::vector<FuzzTestFunc> _instance;
     return _instance;
@@ -16,6 +13,11 @@ void RegisterFuzzTest(FuzzTestFunc func) {
 }
 
 void RunFuzzTests(const char* file_path) {
+    if (fuzz_tests().empty()) {
+        std::cerr << "Error: no fuzz tests registered.\n";
+        return;
+    }
+    
     std::filesystem::path input_path(file_path);
     if (!std::filesystem::exists(input_path)) {
         std::cerr << "Error: " << file_path << " does not exist.\n" << std::endl;
@@ -29,13 +31,19 @@ void RunFuzzTests(const char* file_path) {
                 files.push_back(entry.path());
             }
         }
+        std::sort(files.begin(), files.end());
     } else if (std::filesystem::is_regular_file(input_path)) {
         files.push_back(input_path);
     }
 
     for (const auto &testcase : files) {
-        // const char* testcase_ptr = testcase.string().c_str();
         EntireFile file = read_entire_file_into_memory(testcase.string().c_str());
+
+        if (file.contents == nullptr) {
+            std::cerr << "Warning: could not read file: " << testcase << "\n";
+            continue;
+        }
+
         if (file.len < 2) {
             std::cerr << "File is too small." << std::endl;
             free(file.contents);
@@ -47,14 +55,12 @@ void RunFuzzTests(const char* file_path) {
 
         // Init provider
         fuzzed_data_provider fdp(data, len);
-        provider = &fdp;
 
         // Run single fuzz test based on data index
-        if (len > 0) {
-            fuzz_tests()[(data[0] % fuzz_tests().size())]();
+        if (!fuzz_tests().empty()) {
+            size_t index = static_cast<size_t>(data[0]) % fuzz_tests().size();
+            fuzz_tests()[index](&fdp);
         }
         free(file.contents);
     }
-
-    provider = nullptr;  // Reset provider; this whole function should only run once anyways
 }

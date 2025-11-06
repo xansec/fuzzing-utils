@@ -28,40 +28,45 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         exit(1);
     }
 	
-    FILE* file = fopen(path, "r");
+    FILE* file = fopen(path, "rb");
     if (!file) {
         fprintf(stderr, "Could not open %s for reading\n", path);
         exit(1);
     }
 
-    fseek(file, 0, SEEK_END);
-    int file_size = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    int fd = open(path, O_RDONLY);
+    if (fd == -1) {
+        fprintf(stderr, "Could not open %s for reading\n", path);
+        exit(1);
+    }
 
-    char* data = (char*)malloc(file_size);
-    fread(data, sizeof(char), file_size, file);
+    while (1) {
+        char buf[BUFSIZ];
+        ssize_t n = read(fd, buf, sizeof(buf));
+        if (n == -1) {
+            perror("Unable to read fd");
+            exit(1);
+        }
+        if (n == 0) {
+            break;
+        }
+        size_t add = (size_t)n;
+        size_t new_len = res.len + add;
 
-    fclose(file);
+        
+        char* tmp = (char*)realloc(res.contents, new_len);
+        if (tmp == NULL) {
+            free(res.contents);
+            fprintf(stderr, "realloc failed while reading %s: %s\n", path, strerror(errno));
+            close(fd);
+            exit(1);
+        }
+        res.contents = tmp;
 
-    // while (1) {
-    //     char buf[BUFSIZ];
-    //     ssize_t n = read(fd, buf, sizeof(buf));
-    //     if (n == -1) {
-    //         perror("read");
-    //         exit(1);
-    //     }
-    //     if (n == 0) {
-    //         break;
-    //     }
-    //     res.len += n;
-    //     res.contents = (char *)realloc(res.contents, res.len);
-    //     if (res.contents == NULL) {
-    //         perror("malloc");
-    //         exit(1);
-    //     }
-    //     memcpy(res.contents + res.len - n, buf, n);
-    // }
-    // close(fd);
+        memcpy(res.contents + res.len, buf, add);
+        res.len = new_len;
+    }
+    close(fd);
     return res;
 }
 
