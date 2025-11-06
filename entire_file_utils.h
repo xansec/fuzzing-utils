@@ -57,7 +57,7 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         char* tmp = (char*)realloc(res.contents, new_len);
         if (tmp == NULL) {
             free(res.contents);
-            fprintf(stderr, "realloc failed while reading %s: %s\n", path, strerror(errno));
+            perror("Unable to realloc");
             close(fd);
             exit(1);
         }
