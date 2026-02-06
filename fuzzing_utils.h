@@ -11,8 +11,9 @@
     struct test_group##_##test_name##_FuzzTestRunner { \
         test_group##_##test_name##_FuzzTestRunner() { RegisterFuzzTest(test_group##_##test_name##_FuzzTest); } \
     } test_group##_##test_name##_instance; \
-    void test_group##_##test_name##_FuzzTest(fuzzed_data_provider* _fdp) { \
-        fuzzed_data_provider& provider = *_fdp
+    void test_group##_##test_name##_FuzzTest(fuzzed_data_provider* _fdp)
+
+#define INIT_FUZZ_TEST fuzzed_data_provider& provider = *_fdp;
 
 typedef void (*FuzzTestFunc)(fuzzed_data_provider*);
 void RegisterFuzzTest(FuzzTestFunc func);
