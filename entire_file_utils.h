@@ -27,12 +27,6 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         fprintf(stderr, "No path was given to read\n");
         exit(1);
     }
-	
-    FILE* file = fopen(path, "rb");
-    if (!file) {
-        fprintf(stderr, "Could not open %s for reading\n", path);
-        exit(1);
-    }
 
     int fd = open(path, O_RDONLY);
     if (fd == -1) {
@@ -45,6 +39,7 @@ inline EntireFile read_entire_file_into_memory(const char* path) {
         ssize_t n = read(fd, buf, sizeof(buf));
         if (n == -1) {
             perror("Unable to read fd");
+            close(fd);
             exit(1);
         }
         if (n == 0) {
